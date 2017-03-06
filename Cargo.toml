@@ -1,0 +1,8 @@
+[package]
+authors = ["Erasin <erasinoo@gmail.com>"]
+name = "life"
+version = "0.1.0"
+
+[dependencies]
+rand = "*"
+sdl2 = "^0.28"
