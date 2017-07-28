@@ -4,5 +4,5 @@ name = "life"
 version = "0.1.0"
 
 [dependencies]
-rand = "*"
-sdl2 = "^0.28"
+rand = "0.3"
+sdl2 = "0.30"

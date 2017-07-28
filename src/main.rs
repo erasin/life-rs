@@ -2,14 +2,13 @@ extern crate sdl2;
 extern crate rand;
 
 use sdl2::pixels::Color;
-use sdl2::rect::{Point, Rect};
-
-use std::{thread, time};
-
+use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::render::Renderer;
+use sdl2::render::{WindowCanvas};
 use sdl2::EventPump;
+
+use std::{thread, time};
 
 use rand::Rng;
 
@@ -21,28 +20,25 @@ const NCELLS: i32 = (MAX_X + 1) / CELL_WIDTH;
 
 fn life_random(ncells: i32) -> Vec<Vec<bool>> {
     let mut rng = rand::thread_rng();
-
     let mut v: Vec<Vec<bool>> = Vec::new();
-
     for i in 0..ncells {
         v.push(Vec::new());
-        for j in 0..ncells {
+        for _ in 0..ncells {
             v[i as usize].push(rng.gen());
         }
     }
-
     v
 }
 
 // An alternative initial state
 // You can use this instead of life_random
-
+#[allow(dead_code)]
 fn glider(ncells: i32) -> Vec<Vec<bool>> {
     let mut v: Vec<Vec<bool>> = Vec::new();
 
     for i in 0..ncells {
         v.push(Vec::new());
-        for j in 0..ncells {
+        for _ in 0..ncells {
             v[i as usize].push(false);
         }
     }
@@ -58,13 +54,13 @@ fn glider(ncells: i32) -> Vec<Vec<bool>> {
 
 // Another alternative initial state
 // You can use this instead of life_random
-
+#[allow(dead_code)]
 fn infinite1(ncells: i32) -> Vec<Vec<bool>> {
     let mut v: Vec<Vec<bool>> = Vec::new();
 
     for i in 0..ncells {
         v.push(Vec::new());
-        for j in 0..ncells {
+        for _ in 0..ncells {
             v[i as usize].push(false);
         }
     }
@@ -86,22 +82,23 @@ fn infinite1(ncells: i32) -> Vec<Vec<bool>> {
     v[15][11] = true;
     v[15][13] = true;
     v[15][15] = true;
+    v[15][19] = true;
 
     v
 }
 
-fn display_cell(r: &mut Renderer, row: i32, col: i32) {
+fn display_cell(r: &mut WindowCanvas, row: i32, col: i32) {
 
-    let mut x = CELL_WIDTH * col;
-    let mut y = CELL_WIDTH * row;
+    let x = CELL_WIDTH * col;
+    let y = CELL_WIDTH * row;
 
     let cell_color = Color::RGB(255, 0, 0);
     r.set_draw_color(cell_color);
-    r.fill_rect(Rect::new(x, y, CELL_WIDTH as u32, CELL_HEIGHT as u32));
+    let _ = r.fill_rect(Rect::new(x, y, CELL_WIDTH as u32, CELL_HEIGHT as u32));
 
 }
 
-fn display_frame(r: &mut Renderer, v: &Vec<Vec<bool>>) {
+fn display_frame(r: &mut WindowCanvas, v: &Vec<Vec<bool>>) {
     r.set_draw_color(Color::RGB(200, 200, 200));
     r.clear();
     for i in 0..NCELLS {
@@ -131,12 +128,11 @@ fn count_surrounding(r: i32, c: i32, v: &Vec<Vec<bool>>) -> i32 {
     let c = c as usize;
 
     v[dec(r)][c] as i32 + v[inc(r)][c] as i32 + v[r][dec(c)] as i32 + v[r][inc(c)] as i32 +
-    v[dec(r)][dec(c)] as i32 + v[dec(r)][inc(c)] as i32 + v[inc(r)][inc(c)] as i32 +
-    v[inc(r)][dec(c)] as i32
+    v[dec(r)][dec(c)] as i32 + v[dec(r)][inc(c)] as i32 +
+    v[inc(r)][inc(c)] as i32 + v[inc(r)][dec(c)] as i32
 }
 
 fn alive(r: i32, c: i32, v: &Vec<Vec<bool>>) -> bool {
-
     let n = count_surrounding(r, c, v);
     let curr = v[r as usize][c as usize] as i32;
 
@@ -168,9 +164,10 @@ fn life_next(v: Vec<Vec<bool>>) -> Vec<Vec<bool>> {
     v2
 }
 
-fn init<'a>() -> (Renderer<'a>, EventPump) {
+fn init<'a>() -> (WindowCanvas, EventPump) {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
+    // let mut timer = sdl_context.timer().unwrap();
 
     let window = video_subsystem.window("demo", MAX_X as u32 + 1, MAX_Y as u32 + 1)
         .position_centered()
@@ -178,8 +175,8 @@ fn init<'a>() -> (Renderer<'a>, EventPump) {
         .build()
         .unwrap();
 
-    let mut renderer = window.renderer().build().unwrap();
-
+    // 画布
+    let mut renderer = window.into_canvas().accelerated().build().unwrap();
     let event_pump = sdl_context.event_pump().unwrap();
 
     renderer.set_draw_color(Color::RGB(255, 255, 255));
@@ -193,11 +190,11 @@ fn main() {
     let (mut r, mut e) = init();
     let mut v = life_random(NCELLS);
 
-
     'running: loop {
         for event in e.poll_iter() {
             match event {
                 Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
+                Event::KeyDown { keycode: Some(Keycode::Q), .. } => break 'running,
                 _ => {}
             }
         }
