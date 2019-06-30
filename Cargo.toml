@@ -2,7 +2,10 @@
 authors = ["Erasin <erasinoo@gmail.com>"]
 name = "life"
 version = "0.1.0"
+edition = "2018"
 
 [dependencies]
-rand = "0.3"
-sdl2 = "0.30"
+rand = "0.7"
+sdl2 = "0.32.2"
+structopt = "0.2"
+human-panic = "1.0"

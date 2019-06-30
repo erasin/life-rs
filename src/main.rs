@@ -1,11 +1,17 @@
 extern crate sdl2;
 extern crate rand;
 
+#[macro_use] 
+extern crate human_panic;
+// #[macro_use] 
+extern crate structopt;
+use structopt::StructOpt;
+
 use sdl2::pixels::Color;
 use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::keyboard::Keycode;
-use sdl2::render::{WindowCanvas};
+use sdl2::render::WindowCanvas;
 use sdl2::EventPump;
 
 use std::{thread, time};
@@ -18,6 +24,7 @@ const CELL_WIDTH: i32 = 5;
 const CELL_HEIGHT: i32 = CELL_WIDTH;
 const NCELLS: i32 = (MAX_X + 1) / CELL_WIDTH;
 
+// life_random 
 fn life_random(ncells: i32) -> Vec<Vec<bool>> {
     let mut rng = rand::thread_rng();
     let mut v: Vec<Vec<bool>> = Vec::new();
@@ -87,17 +94,17 @@ fn infinite1(ncells: i32) -> Vec<Vec<bool>> {
     v
 }
 
+// display_cell 绘制单元
 fn display_cell(r: &mut WindowCanvas, row: i32, col: i32) {
+    let x: i32 = CELL_WIDTH * col;
+    let y: i32 = CELL_WIDTH * row;
 
-    let x = CELL_WIDTH * col;
-    let y = CELL_WIDTH * row;
-
-    let cell_color = Color::RGB(255, 0, 0);
+    let cell_color: Color = Color::RGB(255, 0, 0);
     r.set_draw_color(cell_color);
     let _ = r.fill_rect(Rect::new(x, y, CELL_WIDTH as u32, CELL_HEIGHT as u32));
-
 }
 
+// 帧率绘制
 fn display_frame(r: &mut WindowCanvas, v: &Vec<Vec<bool>>) {
     r.set_draw_color(Color::RGB(200, 200, 200));
     r.clear();
@@ -128,10 +135,11 @@ fn count_surrounding(r: i32, c: i32, v: &Vec<Vec<bool>>) -> i32 {
     let c = c as usize;
 
     v[dec(r)][c] as i32 + v[inc(r)][c] as i32 + v[r][dec(c)] as i32 + v[r][inc(c)] as i32 +
-    v[dec(r)][dec(c)] as i32 + v[dec(r)][inc(c)] as i32 +
-    v[inc(r)][inc(c)] as i32 + v[inc(r)][dec(c)] as i32
+        v[dec(r)][dec(c)] as i32 + v[dec(r)][inc(c)] as i32 +
+        v[inc(r)][inc(c)] as i32 + v[inc(r)][dec(c)] as i32
 }
 
+// alive 检查存活
 fn alive(r: i32, c: i32, v: &Vec<Vec<bool>>) -> bool {
     let n = count_surrounding(r, c, v);
     let curr = v[r as usize][c as usize] as i32;
@@ -147,6 +155,7 @@ fn alive(r: i32, c: i32, v: &Vec<Vec<bool>>) -> bool {
     }
 }
 
+// 下一帧
 fn life_next(v: Vec<Vec<bool>>) -> Vec<Vec<bool>> {
     let mut v2: Vec<Vec<bool>> = Vec::new();
 
@@ -164,6 +173,7 @@ fn life_next(v: Vec<Vec<bool>>) -> Vec<Vec<bool>> {
     v2
 }
 
+// 初始化
 fn init<'a>() -> (WindowCanvas, EventPump) {
     let sdl_context = sdl2::init().unwrap();
     let video_subsystem = sdl_context.video().unwrap();
@@ -175,9 +185,10 @@ fn init<'a>() -> (WindowCanvas, EventPump) {
         .build()
         .unwrap();
 
+
     // 画布
     let mut renderer = window.into_canvas().accelerated().build().unwrap();
-    let event_pump = sdl_context.event_pump().unwrap();
+    let event_pump: EventPump = sdl_context.event_pump().unwrap();
 
     renderer.set_draw_color(Color::RGB(255, 255, 255));
     renderer.clear();
@@ -186,7 +197,7 @@ fn init<'a>() -> (WindowCanvas, EventPump) {
     (renderer, event_pump)
 }
 
-fn main() {
+fn run() {
     let (mut r, mut e) = init();
     let mut v = life_random(NCELLS);
 
@@ -202,4 +213,32 @@ fn main() {
         v = life_next(v);
         thread::sleep(time::Duration::from_millis(50));
     }
+}
+
+// life 运行
+#[derive(StructOpt, Debug)]
+#[structopt(name = "life")]
+struct Arg {
+    #[structopt(subcommand)]
+    sub_command: SubCommand,
+}
+
+
+#[derive(StructOpt, Debug)]
+#[structopt()]
+enum SubCommand {
+    /// run life
+    #[structopt(name = "run")]
+    Run,
+}
+
+fn main() {
+    setup_panic!();
+
+    let args: Arg = Arg::from_args();
+
+    match args.sub_command {
+        SubCommand::Run => run(),
+    }
+
 }
