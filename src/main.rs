@@ -1,22 +1,16 @@
-extern crate sdl2;
+
 extern crate rand;
-
-#[macro_use] 
+extern crate sdl2;
+#[macro_use]
 extern crate human_panic;
-// #[macro_use] 
 extern crate structopt;
-use structopt::StructOpt;
-
-use sdl2::pixels::Color;
-use sdl2::rect::Rect;
-use sdl2::event::Event;
-use sdl2::keyboard::Keycode;
-use sdl2::render::WindowCanvas;
-use sdl2::EventPump;
-
-use std::{thread, time};
 
 use rand::Rng;
+use sdl2::{
+    event::Event, keyboard::Keycode, pixels::Color, rect::Rect, render::WindowCanvas, EventPump,
+};
+use std::{thread, time};
+use structopt::StructOpt;
 
 const MAX_X: i32 = 199;
 const MAX_Y: i32 = MAX_X;
@@ -24,7 +18,7 @@ const CELL_WIDTH: i32 = 5;
 const CELL_HEIGHT: i32 = CELL_WIDTH;
 const NCELLS: i32 = (MAX_X + 1) / CELL_WIDTH;
 
-// life_random 
+// life_random
 fn life_random(ncells: i32) -> Vec<Vec<bool>> {
     let mut rng = rand::thread_rng();
     let mut v: Vec<Vec<bool>> = Vec::new();
@@ -134,9 +128,14 @@ fn count_surrounding(r: i32, c: i32, v: &Vec<Vec<bool>>) -> i32 {
     let r = r as usize;
     let c = c as usize;
 
-    v[dec(r)][c] as i32 + v[inc(r)][c] as i32 + v[r][dec(c)] as i32 + v[r][inc(c)] as i32 +
-        v[dec(r)][dec(c)] as i32 + v[dec(r)][inc(c)] as i32 +
-        v[inc(r)][inc(c)] as i32 + v[inc(r)][dec(c)] as i32
+    v[dec(r)][c] as i32
+        + v[inc(r)][c] as i32
+        + v[r][dec(c)] as i32
+        + v[r][inc(c)] as i32
+        + v[dec(r)][dec(c)] as i32
+        + v[dec(r)][inc(c)] as i32
+        + v[inc(r)][inc(c)] as i32
+        + v[inc(r)][dec(c)] as i32
 }
 
 // alive 检查存活
@@ -179,7 +178,8 @@ fn init<'a>() -> (WindowCanvas, EventPump) {
     let video_subsystem = sdl_context.video().unwrap();
     // let mut timer = sdl_context.timer().unwrap();
 
-    let window = video_subsystem.window("demo", MAX_X as u32 + 1, MAX_Y as u32 + 1)
+    let window = video_subsystem
+        .window("demo", MAX_X as u32 + 1, MAX_Y as u32 + 1)
         .position_centered()
         .opengl()
         .build()
@@ -199,13 +199,20 @@ fn init<'a>() -> (WindowCanvas, EventPump) {
 
 fn run() {
     let (mut r, mut e) = init();
-    let mut v = life_random(NCELLS);
+    // let mut v = life_random(NCELLS);
+    let mut v = infinite1(NCELLS);
 
     'running: loop {
         for event in e.poll_iter() {
             match event {
-                Event::KeyDown { keycode: Some(Keycode::Escape), .. } => break 'running,
-                Event::KeyDown { keycode: Some(Keycode::Q), .. } => break 'running,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Escape),
+                    ..
+                } => break 'running,
+                Event::KeyDown {
+                    keycode: Some(Keycode::Q),
+                    ..
+                } => break 'running,
                 _ => {}
             }
         }
